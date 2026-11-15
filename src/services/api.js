@@ -35,7 +35,7 @@ export const api = {
   },
   async getAppointments() {
     const data = await request('/api/agendamentos')
-    return data.map((item) => ({ id: item.id, client: item.cliente, service: item.servico, barber: item.barbeiro, date: String(item.data).slice(0, 10), time: String(item.hora).slice(0, 5), status: item.status }))
+    return data.map((item) => ({ id: item.id, clientId: item.cliente_id, barberId: item.barbeiro_id, serviceId: item.servico_id, client: item.cliente, service: item.servico, barber: item.barbeiro, date: String(item.data).slice(0, 10), time: String(item.hora).slice(0, 5), status: item.status }))
   },
   getDashboard(month) {
     return request(`/api/dashboard?month=${encodeURIComponent(month)}`)
@@ -49,10 +49,34 @@ export const api = {
   createClient(payload) {
     return request('/api/clientes', { method: 'POST', body: JSON.stringify(payload) })
   },
+  updateClient(id, payload) {
+    return request(`/api/clientes/${id}`, { method: 'PUT', body: JSON.stringify(payload) })
+  },
+  deleteClient(id) {
+    return request(`/api/clientes/${id}`, { method: 'DELETE' })
+  },
   createBarber(payload) {
     return request('/api/barbeiros', { method: 'POST', body: JSON.stringify(payload) })
   },
+  updateBarber(id, payload) {
+    return request(`/api/barbeiros/${id}`, { method: 'PUT', body: JSON.stringify(payload) })
+  },
+  deleteBarber(id) {
+    return request(`/api/barbeiros/${id}`, { method: 'DELETE' })
+  },
   createService(payload) {
     return request('/api/servicos', { method: 'POST', body: JSON.stringify(payload) })
+  },
+  updateService(id, payload) {
+    return request(`/api/servicos/${id}`, { method: 'PUT', body: JSON.stringify(payload) })
+  },
+  deleteService(id) {
+    return request(`/api/servicos/${id}`, { method: 'DELETE' })
+  },
+  updateAppointment(id, payload) {
+    return request(`/api/agendamentos/${id}`, { method: 'PUT', body: JSON.stringify(payload) })
+  },
+  deleteAppointment(id) {
+    return request(`/api/agendamentos/${id}`, { method: 'DELETE' })
   },
 }

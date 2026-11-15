@@ -2,12 +2,12 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import App from '../src/App'
 import { api as mockApi } from '../src/services/api'
 
-jest.mock('../src/services/api', () => ({ api: { login: jest.fn(), logout: jest.fn(), getClients: jest.fn(), getBarbers: jest.fn(), getServices: jest.fn(), getAppointments: jest.fn(), getDashboard: jest.fn(), lookupCep: jest.fn(), createClient: jest.fn(), createBarber: jest.fn(), createService: jest.fn(), createAppointment: jest.fn() } }))
+jest.mock('../src/services/api', () => ({ api: { login: jest.fn(), logout: jest.fn(), getClients: jest.fn(), getBarbers: jest.fn(), getServices: jest.fn(), getAppointments: jest.fn(), getDashboard: jest.fn(), lookupCep: jest.fn(), createClient: jest.fn(), updateClient: jest.fn(), deleteClient: jest.fn(), createBarber: jest.fn(), updateBarber: jest.fn(), deleteBarber: jest.fn(), createService: jest.fn(), updateService: jest.fn(), deleteService: jest.fn(), createAppointment: jest.fn(), updateAppointment: jest.fn(), deleteAppointment: jest.fn() } }))
 
 const clients = [{ id: 'c1', name: 'Ana', phone: '1', email: 'ana@email.com', cep: '01001-000', street: 'Praça da Sé', district: 'Sé', city: 'São Paulo', state: 'SP' }]
 const barbers = [{ id: 'b1', name: 'Bia', specialty: 'Corte', phone: '2' }]
 const services = [{ id: 's1', name: 'Corte', price: 40, duration: 30 }]
-const appointments = [{ id: 'a1', client: 'Ana', barber: 'Bia', service: 'Corte', date: '2026-11-12', time: '10:00', status: 'agendado' }]
+const appointments = [{ id: 'a1', clientId: 'c1', barberId: 'b1', serviceId: 's1', client: 'Ana', barber: 'Bia', service: 'Corte', date: '2026-11-12', time: '10:00', status: 'agendado' }]
 const dashboard = {
   month: '2026-11',
   metrics: { appointments: 8, revenue: 450, averageTicket: 56.25, clients: 12, developmentClients: 1, topService: 'Corte', peakHour: '10:00' },
@@ -31,7 +31,11 @@ describe('App', () => {
     mockApi.getDashboard.mockResolvedValue(dashboard)
     mockApi.lookupCep.mockResolvedValue({ cep: '01001-000', logradouro: 'Praça da Sé', bairro: 'Sé', cidade: 'São Paulo', estado: 'SP' })
     mockApi.createClient.mockResolvedValue({})
+    mockApi.updateClient.mockResolvedValue({})
+    mockApi.deleteClient.mockResolvedValue({})
     mockApi.createAppointment.mockResolvedValue({})
+    mockApi.updateAppointment.mockResolvedValue({})
+    mockApi.deleteAppointment.mockResolvedValue({})
   })
 
   async function login() {
@@ -72,6 +76,25 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Sair da conta' }))
     await waitFor(() => expect(mockApi.logout).toHaveBeenCalled())
     expect(await screen.findByText('Bem-vindo de volta')).toBeInTheDocument()
+  })
+
+  it('edita um cliente existente', async () => {
+    await login()
+    fireEvent.click(screen.getByRole('button', { name: /Clientes/ }))
+    fireEvent.click((await screen.findAllByRole('button', { name: 'Editar' }))[0])
+    expect(screen.getByText('Editar cliente')).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Ana Atualizada' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    await waitFor(() => expect(mockApi.updateClient).toHaveBeenCalledWith('c1', expect.objectContaining({ nome: 'Ana Atualizada' })))
+  })
+
+  it('confirma e exclui um agendamento', async () => {
+    await login()
+    fireEvent.click(screen.getByRole('button', { name: /Agendamentos/ }))
+    fireEvent.click((await screen.findAllByRole('button', { name: 'Excluir' }))[0])
+    expect(screen.getByText('Confirmar exclusão')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Excluir definitivamente' }))
+    await waitFor(() => expect(mockApi.deleteAppointment).toHaveBeenCalledWith('a1'))
   })
 
   it('exibe falha de autenticação', async () => {
