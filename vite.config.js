@@ -6,5 +6,6 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     define: { 'globalThis.__BARBERFLOW_API_URL__': JSON.stringify(env.VITE_API_URL || 'http://localhost:3000') },
+    preview: { allowedHosts: true },
   }
 })
